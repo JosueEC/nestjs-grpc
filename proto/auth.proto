@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+/*
+Esta es la sintaxis de los archivos .proto, los cuales son usados por
+el protocolo RPC para la comunicacion entre microservicios.enum
+
+Basicamente aqui se esta definiendo con que objetos se va a trabajar
+y a traves de que funciones se va a interactuar con los mismos asi
+como el comportamiento de las funciones
+*/
+package auth;
+
+/*
+En la parte de service es donde definimos las funciones del controller
+donde especificamos que son un procedimiento al que se puede llamar
+de forma remota, asi como el tipo de objeto que recibe y el que retorna
+
+Esto significa que aqui indicamos a los clientes gRPC que estas son
+las funciones que se tienen disponibles para este servidor gRPC
+*/
+service UserService {
+    rpc CreateUser (CreateUserDto) returns (User) {}
+    rpc FindAllUsers (Empty) return (Users) {}
+    rpc FindOneUser (FindOneUserDto) return (User) {}
+    rpc UpdateUserDto (UpdateUserDto) return (User) {}
+    rpc RemoveUserDto (FindOneUserDto) return (User) {}
+    rpc QueryUsers (stream PaginationDto) returns (stream Users) {}
+}
+
+/*
+Este message es usado por el metodo QueryUsers, el cual implica una
+consulta que devuelve una gran cantidad de resultados, por lo que
+estos deben ser accedidos a traves de un stream, para que sean
+consultados de la forma correcta.
+
+Por lo tanto QueryUsers es la sintaxis en la cual definimos esto en
+la sintaxis protobuffer
+*/
+message PaginationDto {
+    int32 page = 1;
+    int32 skip = 2;
+}
+
+message UpdateUserDto {
+    string id = 1;
+    SocialMedia socialMedia = 2;
+}
+/*
+Un message al parecer es el tipado para un objeto de comunicacion,
+por ejemplo, aqui se esta definiendo el tipado de un objeto
+CreateUserDto.
+
+Las propiedades se inicializan con un numero que va incrementando en
+base a la cantidad de propiedades.
+
+Estos 'message' son muy similares a lo que seria una clase.
+*/
+message CreateUserDto {
+    string usernamr = 1;
+    string password = 2;
+    int32 age = 3;
+}
+
+/*
+Parece ser que todo debe ser tipado, incluso si no se recibe nada en
+una funcion, esta debe ser tipada con el message Empty. Justo como se
+esta haciendo en la funcion findAllUsers
+*/
+message Empty {}
+
+/*
+Esta es la forma en la que representamos el tipo array en la sintaxis
+de protobuffer. 'repeated' significa que el tipo que le precede estara
+presente varias veces, a ocntinuacion colocamos el tipo que deseamos
+representar varias veces, finalmente, este messega es el que podemos
+usar en nuestras funciones rpc. 
+
+Users = Array<Users>
+*/
+message Users {
+    repeated User users = 1;
+}
+
+/*
+Esta es la forma en la que podemos tipar parametros con la sintaxis
+protbuffer. Basicamente se crea un objeto con la propiedad que sera
+el parametro.
+*/
+message FindOneUserDto {
+    string id = 1;
+}
+
+message User {
+    string id = 1;
+    string username = 2;
+    string password = 3;
+    int32 age = 4;
+    bool subscribed = 5;
+    SocialMedia socialMedia = 6;
+}
+
+/*
+Incluso podemos referenciar a un message como un tipo, como en el
+ejemplo de arriba, donde se esta referenciando al tipo SocialMedia
+el cual esta definido en la parte de abajo.
+*/
+message SocialMedia {
+    optional string twitterUri = 1;
+    optional string facebookUri = 2;
+}
